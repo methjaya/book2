@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Language of Staying — Sahansa Jayawardhana</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #24211d;
+      --paper: #f1eadc;
+      --muted: #aaa296;
+      --accent: #b28b57;
+      --modal-bg: #1c1a17;
+      --border-color: rgba(241, 234, 220, 0.2);
+      --serif: "Cormorant Garamond", Georgia, serif;
+      --sans: "Libre Franklin", Arial, sans-serif;
+    }
+
+    * { 
+      box-sizing: border-box; 
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      font-family: var(--sans);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--paper);
+    }
+
+    .hero {
+      min-height: 100vh;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(300px, 39vw) minmax(420px, 1fr);
+      align-items: center;
+      gap: clamp(55px, 7vw, 120px);
+      padding: 5vw 9vw;
+      overflow: hidden;
+    }
+
+    .book-cover {
+      width: min(100%, 440px);
+      justify-self: center;
+      position: relative;
+      box-shadow: 18px 24px 45px rgba(0,0,0,.45);
+      transform: rotate(-1deg);
+      transition: transform 0.4s ease;
+    }
+
+    .book-cover:hover {
+      transform: rotate(0deg) scale(1.02);
+    }
+
+    .book-cover img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 2px;
+    }
+
+    .book-cover::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+      pointer-events: none;
+    }
+
+    .hero-copy {
+      max-width: 760px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .eyebrow {
+      margin: 0 0 32px;
+      color: var(--muted);
+      font: 600 11px/1.2 var(--sans);
+      letter-spacing: .25em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font: 400 clamp(55px, 5.4vw, 94px)/.82 var(--serif);
+      letter-spacing: -.045em;
+    }
+
+    h1 span {
+      font-style: normal;
+    }
+
+    h1 em {
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .description {
+      width: min(620px, 100%);
+      margin: 42px 0 0;
+      color: var(--muted);
+      font: 400 20px/1.55 var(--serif);
+      letter-spacing: 0.02em;
+    }
+
+    .download-trigger-btn {
+      margin-top: 38px;
+      display: inline-flex;
+      align-items: center;
+      gap: 65px;
+      padding: 16px 22px;
+      border: 1px solid rgba(241,234,220,.65);
+      background: transparent;
+      color: var(--paper);
+      text-decoration: none;
+      font: 600 11px/1 var(--sans);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .download-trigger-btn .arrow {
+      font-size: 17px;
+      line-height: .7;
+      transition: transform 0.3s ease;
+    }
+
+    .download-trigger-btn:hover {
+      background: var(--paper);
+      color: var(--bg);
+      border-color: var(--paper);
+    }
+
+    .download-trigger-btn:hover .arrow {
+      transform: translateY(3px);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 13, 11, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--modal-bg);
+      border: 1px solid var(--border-color);
+      width: min(520px, 100%);
+      padding: 42px 36px;
+      position: relative;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+      transform: translateY(20px);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-backdrop.active .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 5px;
+      transition: color 0.2s ease;
+    }
+
+    .modal-close:hover {
+      color: var(--paper);
+    }
+
+    .modal-header h2 {
+      margin: 0 0 10px;
+      font: 500 36px/1.1 var(--serif);
+      color: var(--paper);
+    }
+
+    .modal-header p {
+      margin: 0 0 28px;
+      font: 400 14px/1.6 var(--sans);
+      color: var(--muted);
+    }
+
+    .notice-box {
+      background: rgba(241, 234, 220, 0.04);
+      border-left: 2px solid var(--accent);
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font: 600 10px/1 var(--sans);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .form-group label span.req {
+      color: var(--accent);
+      margin-left: 3px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(241, 234, 220, 0.25);
+      padding: 14px 16px;
+      color: var(--paper);
+      font-family: var(--sans);
+      font-size: 14px;
+      border-radius: 0;
+      outline: none;
+      transition: border-color 0.25s ease, background 0.25s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--paper);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .submit-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 16px;
+      background: var(--paper);
+      color: var(--bg);
+      border: 1px solid var(--paper);
+      font: 600 11px/1 var(--sans);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.25s ease, color 0.25s ease, opacity 0.25s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .submit-btn:hover {
+      background: transparent;
+      color: var(--paper);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Status Message */
+    .status-msg {
+      margin-top: 15px;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+    }
+    .status-msg.success {
+      color: #86efac;
+      display: block;
+    }
+    .status-msg.error {
+      color: #fca5a5;
+      display: block;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        min-height: 100svh;
+        grid-template-columns: 1fr;
+        gap: 55px;
+        padding: 10vw 8vw 13vw;
+      }
+
+      .book-cover {
+        width: min(72vw, 390px);
+        order: 1;
+      }
+
+      .hero-copy {
+        order: 2;
+        max-width: 700px;
+      }
+
+      .eyebrow {
+        margin-bottom: 22px;
+      }
+
+      .description {
+        margin-top: 28px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .hero {
+        padding: 9vw 7vw 12vw;
+        gap: 40px;
+      }
+
+      .book-cover {
+        width: min(82vw, 360px);
+      }
+
+      h1 {
+        font-size: 50px;
+      }
+
+      .download-trigger-btn {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .modal-card {
+        padding: 30px 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="hero">
+
+    <div class="book-cover">
+      <img src="book-cover.jpg" alt="The Language of Staying book cover" onerror="this.src='https://placehold.co/440x620/3d3730/f1eadc?text=The+Language+of+Staying'">
+    </div>
+
+    <section class="hero-copy">
+
+      <p class="eyebrow">A Collection of Reflections</p>
+
+      <h1>
+        <span>Not a handbook.</span><br>
+        <em>A hundred little mirrors.</em>
+      </h1>
+
+      <p class="description">
+        — Sahansa Jayawardhana
+      </p>
+
+      <!-- Click triggers modal form -->
+      <button class="download-trigger-btn" id="openModalBtn" type="button">
+        <span>Download the book</span>
+        <span class="arrow">↓</span>
+      </button>
+    </section>
+
+  </main>
+
+  <div class="modal-backdrop" id="downloadModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-labelledby="modalTitle">
+      <button class="modal-close" id="closeModalBtn" aria-label="Close modal">&times;</button>
+      
+      <div class="modal-header">
+        <h2 id="modalTitle">Get Your Free Copy</h2>
+        <p>Enter your details below to receive <em>The Language of Staying</em> instantly.</p>
+      </div>
+
+      <div class="notice-box">
+        <strong>Why we ask:</strong> Your contact info is collected so the author can keep you updated on upcoming literary releases and future reflections.
+      </div>
+
+      <!-- Netlify Form Attributes included -->
+      <form id="readerForm" name="book-downloads" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+        <!-- Hidden input for Netlify Form identification -->
+        <input type="hidden" name="form-name" value="book-downloads" />
+        
+        <!-- Spam prevention hidden field -->
+        <p style="display:none">
+          <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
+        </p>
+
+        <div class="form-group">
+          <label for="fullName">Full Name <span class="req">*</span></label>
+          <input type="text" id="fullName" name="fullName" class="form-control" placeholder="e.g. Jane Doe" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address <span class="req">*</span></label>
+          <input type="email" id="email" name="email" class="form-control" placeholder="e.g. jane@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="contactNumber">Contact Number <span class="req">*</span></label>
+          <input type="tel" id="contactNumber" name="contactNumber" class="form-control" placeholder="e.g. +1 (555) 000-0000" required>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span>Submit & Download Book</span>
+          <span style="font-size: 14px;">↓</span>
+        </button>
+
+        <div class="status-msg" id="statusMsg"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('downloadModal');
+      const openBtn = document.getElementById('openModalBtn');
+      const closeBtn = document.getElementById('closeModalBtn');
+      const readerForm = document.getElementById('readerForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const statusMsg = document.getElementById('statusMsg');
+
+      // PDF Download File Path
+      const pdfFilePath = "The-Language-of-Staying.pdf";
+
+      // Open Modal
+      openBtn.addEventListener('click', () => {
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+      });
+
+      // Close Modal Function
+      const closeModal = () => {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+      };
+
+      closeBtn.addEventListener('click', closeModal);
+
+      // Close on backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      // Close on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          closeModal();
+        }
+      });
+
+      // Helper function to trigger actual PDF download
+      const triggerPdfDownload = () => {
+        const tempLink = document.createElement('a');
+        tempLink.href = pdfFilePath;
+        tempLink.download = "The-Language-of-Staying.pdf";
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+      };
+
+      // Form submission handler using Netlify Forms (AJAX fetch)
+      readerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        submitBtn.disabled = true;
+        submitBtn.querySelector('span').textContent = "Processing...";
+        statusMsg.className = "status-msg";
+        statusMsg.style.display = "none";
+
+        const formData = new FormData(readerForm);
+
+        try {
+          // Submit form to Netlify
+          const response = await fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(formData).toString(),
+          });
+
+          if (response.ok || response.status === 200) {
+            statusMsg.textContent = "Thank you! Your download is starting...";
+            statusMsg.className = "status-msg success";
+
+            // Automatically trigger PDF download
+            triggerPdfDownload();
+
+            // Reset form & close modal after 2.5s
+            setTimeout(() => {
+              readerForm.reset();
+              submitBtn.disabled = false;
+              submitBtn.querySelector('span').textContent = "Submit & Download Book";
+              closeModal();
+            }, 2500);
+
+          } else {
+            throw new Error("Form submission failed.");
+          }
+        } catch (error) {
+          console.warn("Netlify submission fallback triggered:", error);
+          
+          // Local testing fallback: Trigger download even if not on Netlify yet
+          statusMsg.textContent = "Thank you! Downloading book...";
+          statusMsg.className = "status-msg success";
+          triggerPdfDownload();
+
+          setTimeout(() => {
+            readerForm.reset();
+            submitBtn.disabled = false;
+            submitBtn.querySelector('span').textContent = "Submit & Download Book";
+            closeModal();
+          }, 2500);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
