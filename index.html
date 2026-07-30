@@ -207,7 +207,7 @@
     }
 
     .modal-header p {
-      margin: 0 0 24px;
+      margin: 0 0 28px;
       font: 400 14px/1.6 var(--sans);
       color: var(--muted);
     }
@@ -363,6 +363,7 @@
     </div>
 
     <section class="hero-copy">
+
       <p class="eyebrow">A Collection of Reflections</p>
 
       <h1>
@@ -374,6 +375,7 @@
         — Sahansa Jayawardhana
       </p>
 
+      <!-- Click triggers modal form -->
       <button class="download-trigger-btn" id="openModalBtn" type="button">
         <span>Download the book</span>
         <span class="arrow">↓</span>
@@ -388,11 +390,11 @@
       
       <div class="modal-header">
         <h2 id="modalTitle">Get Your Free Copy</h2>
-        <p>Please provide your contact details to download <em>The Language of Staying</em>.</p>
+        <p>Enter your details below to receive <em>The Language of Staying</em> instantly.</p>
       </div>
 
       <div class="notice-box">
-        <strong>Note:</strong> Your details are collected so the author can keep you updated regarding future literary works and releases.
+        <strong>Why we ask:</strong> Your contact info is collected so the author can keep you updated on upcoming literary releases and future reflections.
       </div>
 
       <form id="readerForm">
@@ -422,11 +424,10 @@
   </div>
 
   <script>
-    // -------------------------------------------------------------
-    // REPLACE THIS URL WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
-    // (Follow the 2-minute setup instructions provided below)
-    // -------------------------------------------------------------
-    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw12SK3K085nOjkjjK5MoH0xgOpsCTf_REIb6mJLa0YdcbhXZwfTAg3h1e5bDvhADNMFA/exec";
+    // ============================================================
+    // STEP 1: CHANGE THIS TO YOUR ACTUAL EMAIL ADDRESS!
+    // ============================================================
+    const YOUR_EMAIL = "methjaya252@gmail.com"; 
 
     document.addEventListener('DOMContentLoaded', () => {
       const modal = document.getElementById('downloadModal');
@@ -436,6 +437,7 @@
       const submitBtn = document.getElementById('submitBtn');
       const statusMsg = document.getElementById('statusMsg');
 
+      // PDF Download File Path
       const pdfFilePath = "The-Language-of-Staying.pdf";
 
       // Open Modal
@@ -452,15 +454,21 @@
 
       closeBtn.addEventListener('click', closeModal);
 
+      // Close on backdrop click
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
+        if (e.target === modal) {
+          closeModal();
+        }
       });
 
+      // Close on Escape key
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          closeModal();
+        }
       });
 
-      // Helper function to trigger actual PDF download
+      // Helper function to trigger PDF download
       const triggerPdfDownload = () => {
         const tempLink = document.createElement('a');
         tempLink.href = pdfFilePath;
@@ -470,56 +478,67 @@
         document.body.removeChild(tempLink);
       };
 
-      // Handle form submission directly to Google Sheets DB
+      // Form submission handler using FormSubmit AJAX
       readerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         submitBtn.disabled = true;
-        const origBtnText = submitBtn.querySelector('span').textContent;
-        submitBtn.querySelector('span').textContent = "Saving details...";
+        submitBtn.querySelector('span').textContent = "Processing...";
         statusMsg.className = "status-msg";
         statusMsg.style.display = "none";
 
-        const formData = new FormData(readerForm);
+        const fullName = document.getElementById('fullName').value;
+        const email = document.getElementById('email').value;
+        const contactNumber = document.getElementById('contactNumber').value;
 
         try {
-          if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== "https://script.google.com/macros/s/AKfycbw12SK3K085nOjkjjK5MoH0xgOpsCTf_REIb6mJLa0YdcbhXZwfTAg3h1e5bDvhADNMFA/exec") {
-            // Post directly to your Google Sheet Web App
-            await fetch(GOOGLE_SHEET_URL, {
-              method: 'POST',
-              body: formData,
-              mode: 'no-cors' // Google Apps Script handles no-cors gracefully
-            });
+          // Send form data silently via FormSubmit API
+          const response = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(YOUR_EMAIL)}`, {
+            method: "POST",
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              "Full Name": fullName,
+              "Email": email,
+              "Contact Number": contactNumber,
+              "_subject": `New Reader Download: ${fullName}`,
+              "_template": "table",
+              "_captcha": "false"
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok || data.success === "true") {
+            statusMsg.textContent = "Thank you! Your download is starting...";
+            statusMsg.className = "status-msg success";
+
+            // Trigger PDF download
+            triggerPdfDownload();
+
+            setTimeout(() => {
+              readerForm.reset();
+              submitBtn.disabled = false;
+              submitBtn.querySelector('span').textContent = "Submit & Download Book";
+              closeModal();
+            }, 2500);
           } else {
-            console.warn("Google Sheet URL not configured yet. Triggering direct download.");
+            throw new Error(data.message || "Form submission failed.");
           }
-
-          statusMsg.textContent = "Success! Starting your download...";
-          statusMsg.className = "status-msg success";
-
-          // Start PDF download
-          triggerPdfDownload();
-
-          // Reset form and close modal after 2.5s
-          setTimeout(() => {
-            readerForm.reset();
-            submitBtn.disabled = false;
-            submitBtn.querySelector('span').textContent = origBtnText;
-            closeModal();
-          }, 2500);
-
         } catch (error) {
-          console.error("Database save error:", error);
+          console.warn("FormSubmit fallback:", error);
           
-          // Even on error, ensure reader receives the book
-          statusMsg.textContent = "Thank you! Starting download...";
+          // Download fallback in case of connection drop
+          statusMsg.textContent = "Thank you! Downloading book...";
           statusMsg.className = "status-msg success";
           triggerPdfDownload();
 
           setTimeout(() => {
             readerForm.reset();
             submitBtn.disabled = false;
-            submitBtn.querySelector('span').textContent = origBtnText;
+            submitBtn.querySelector('span').textContent = "Submit & Download Book";
             closeModal();
           }, 2500);
         }
