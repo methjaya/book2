@@ -207,7 +207,7 @@
     }
 
     .modal-header p {
-      margin: 0 0 28px;
+      margin: 0 0 24px;
       font: 400 14px/1.6 var(--sans);
       color: var(--muted);
     }
@@ -286,7 +286,6 @@
       cursor: not-allowed;
     }
 
-    /* Status Message */
     .status-msg {
       margin-top: 15px;
       font-size: 13px;
@@ -364,7 +363,6 @@
     </div>
 
     <section class="hero-copy">
-
       <p class="eyebrow">A Collection of Reflections</p>
 
       <h1>
@@ -376,7 +374,6 @@
         — Sahansa Jayawardhana
       </p>
 
-      <!-- Click triggers modal form -->
       <button class="download-trigger-btn" id="openModalBtn" type="button">
         <span>Download the book</span>
         <span class="arrow">↓</span>
@@ -391,23 +388,14 @@
       
       <div class="modal-header">
         <h2 id="modalTitle">Get Your Free Copy</h2>
-        <p>Enter your details below to receive <em>The Language of Staying</em> instantly.</p>
+        <p>Please provide your contact details to download <em>The Language of Staying</em>.</p>
       </div>
 
       <div class="notice-box">
-        <strong>Why we ask:</strong> Your contact info is collected so the author can keep you updated on upcoming literary releases and future reflections.
+        <strong>Note:</strong> Your details are collected so the author can keep you updated regarding future literary works and releases.
       </div>
 
-      <!-- Netlify Form Attributes included -->
-      <form id="readerForm" name="book-downloads" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-        <!-- Hidden input for Netlify Form identification -->
-        <input type="hidden" name="form-name" value="book-downloads" />
-        
-        <!-- Spam prevention hidden field -->
-        <p style="display:none">
-          <label>Don’t fill this out if you're human: <input name="bot-field" /></label>
-        </p>
-
+      <form id="readerForm">
         <div class="form-group">
           <label for="fullName">Full Name <span class="req">*</span></label>
           <input type="text" id="fullName" name="fullName" class="form-control" placeholder="e.g. Jane Doe" required>
@@ -434,6 +422,12 @@
   </div>
 
   <script>
+    // -------------------------------------------------------------
+    // REPLACE THIS URL WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
+    // (Follow the 2-minute setup instructions provided below)
+    // -------------------------------------------------------------
+    const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbw12SK3K085nOjkjjK5MoH0xgOpsCTf_REIb6mJLa0YdcbhXZwfTAg3h1e5bDvhADNMFA/exec";
+
     document.addEventListener('DOMContentLoaded', () => {
       const modal = document.getElementById('downloadModal');
       const openBtn = document.getElementById('openModalBtn');
@@ -442,7 +436,6 @@
       const submitBtn = document.getElementById('submitBtn');
       const statusMsg = document.getElementById('statusMsg');
 
-      // PDF Download File Path
       const pdfFilePath = "The-Language-of-Staying.pdf";
 
       // Open Modal
@@ -459,18 +452,12 @@
 
       closeBtn.addEventListener('click', closeModal);
 
-      // Close on backdrop click
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          closeModal();
-        }
+        if (e.target === modal) closeModal();
       });
 
-      // Close on Escape key
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) {
-          closeModal();
-        }
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
       });
 
       // Helper function to trigger actual PDF download
@@ -483,55 +470,56 @@
         document.body.removeChild(tempLink);
       };
 
-      // Form submission handler using Netlify Forms (AJAX fetch)
+      // Handle form submission directly to Google Sheets DB
       readerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         submitBtn.disabled = true;
-        submitBtn.querySelector('span').textContent = "Processing...";
+        const origBtnText = submitBtn.querySelector('span').textContent;
+        submitBtn.querySelector('span').textContent = "Saving details...";
         statusMsg.className = "status-msg";
         statusMsg.style.display = "none";
 
         const formData = new FormData(readerForm);
 
         try {
-          // Submit form to Netlify
-          const response = await fetch("/", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams(formData).toString(),
-          });
-
-          if (response.ok || response.status === 200) {
-            statusMsg.textContent = "Thank you! Your download is starting...";
-            statusMsg.className = "status-msg success";
-
-            // Automatically trigger PDF download
-            triggerPdfDownload();
-
-            // Reset form & close modal after 2.5s
-            setTimeout(() => {
-              readerForm.reset();
-              submitBtn.disabled = false;
-              submitBtn.querySelector('span').textContent = "Submit & Download Book";
-              closeModal();
-            }, 2500);
-
+          if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== "https://script.google.com/macros/s/AKfycbw12SK3K085nOjkjjK5MoH0xgOpsCTf_REIb6mJLa0YdcbhXZwfTAg3h1e5bDvhADNMFA/exec") {
+            // Post directly to your Google Sheet Web App
+            await fetch(GOOGLE_SHEET_URL, {
+              method: 'POST',
+              body: formData,
+              mode: 'no-cors' // Google Apps Script handles no-cors gracefully
+            });
           } else {
-            throw new Error("Form submission failed.");
+            console.warn("Google Sheet URL not configured yet. Triggering direct download.");
           }
+
+          statusMsg.textContent = "Success! Starting your download...";
+          statusMsg.className = "status-msg success";
+
+          // Start PDF download
+          triggerPdfDownload();
+
+          // Reset form and close modal after 2.5s
+          setTimeout(() => {
+            readerForm.reset();
+            submitBtn.disabled = false;
+            submitBtn.querySelector('span').textContent = origBtnText;
+            closeModal();
+          }, 2500);
+
         } catch (error) {
-          console.warn("Netlify submission fallback triggered:", error);
+          console.error("Database save error:", error);
           
-          // Local testing fallback: Trigger download even if not on Netlify yet
-          statusMsg.textContent = "Thank you! Downloading book...";
+          // Even on error, ensure reader receives the book
+          statusMsg.textContent = "Thank you! Starting download...";
           statusMsg.className = "status-msg success";
           triggerPdfDownload();
 
           setTimeout(() => {
             readerForm.reset();
             submitBtn.disabled = false;
-            submitBtn.querySelector('span').textContent = "Submit & Download Book";
+            submitBtn.querySelector('span').textContent = origBtnText;
             closeModal();
           }, 2500);
         }
